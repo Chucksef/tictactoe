@@ -102,7 +102,6 @@ class Match
     end
 
     def check_winner(status)
-    end
 end
 
 match = Match.new
