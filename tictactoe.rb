@@ -1,9 +1,11 @@
 class Player
     attr_reader :name, :token 
     @@players = 0
+    attr_accessor :turn
     def initialize()
         @name = ""
         @token = ""
+        @turn = true
         while(@name == "")
             system "clear"
             puts "Player #{@@players + 1}: Enter Your Name:"
@@ -22,7 +24,8 @@ end
 class Match
     attr_reader :p1, :p2, :ongoing, :status
 
-    $status = [1,-1,1,0,0,1,0,0,-1,-1,0]
+    # array to hold values, only indicies 0,1,2,4,5,6,8,9,10 hold important data
+    $status = [0,0,0,"-",0,0,0,"-",0,0,0]
     
     public
     def initialize
@@ -37,10 +40,13 @@ class Match
 
     def next_round
         display_board()
-        puts "#{p1.name}: Choose a square (1-9)"
-        player_choice = gets.chomp
-        # determind player turn
-        # ask for input
+        if p1.turn == true
+            $status = take_turn(p1.name,1,$status)
+            p1.turn = false
+        else
+            $status = take_turn(p1.name,-1,$status)
+            p1.turn = true
+        end
         # check for victory
     end
     
@@ -64,10 +70,42 @@ class Match
         end
     end
 
+    def take_turn (player_name, token_value, game_status)
+        puts "#{player_name}: Choose a square (1-9)"
+        player_choice = gets.chomp.to_i
+        warning = validate_player_choice(player_choice, game_status)
+        while warning.is_a?(Integer) != true
+            display_board()
+            puts warning
+            puts "#{player_name}: Choose a square (1-9)"
+            player_choice = gets.chomp.to_i
+            warning = validate_player_choice(player_choice, game_status)
+        end
+        game_status[warning] = token_value
+        return game_status
+    end
+
+    def validate_player_choice (choice,status)
+        msg = false
+        choice -= 1
+        choice = choice + (choice/3)
+        if choice < 0 || choice > 10
+            msg = "You entered a value outside of the accepted range"
+        else
+            if status[choice] != 0
+                msg = "You can't choose an occupied spot!"
+            else
+                msg = choice
+            end
+        end
+        return msg
+    end
+
+    def check_winner(status)
 end
 
 match = Match.new
 while(match.ongoing) do
-    match.next_round
+    match.next_round()
 end
 
