@@ -1,6 +1,7 @@
 class Player
     attr_reader :name, :token 
     @@players = 0
+    @@tokens = []
     attr_accessor :turn
     def initialize()
         @name = ""
@@ -15,15 +16,21 @@ class Player
             system "clear"
             puts "Thanks, #{@name}, now enter a single character to represent your pieces:"
             @token = gets.chomp[0]
+            while @@tokens.include?(@token)
+                system "clear"
+                puts "#{@token} is already taken"
+                puts "#{@name}, Please pick a unique token to represent your pieces:"
+                @token = gets.chomp[0]
+            end
+            @@tokens << @token
         end
         @@players += 1
     end
-
 end
 
 class Match
     attr_reader :p1, :p2, :status
-    attr_accessor :winner, :ongoing
+    attr_accessor :winner, :rounds
 
     # array to hold values, only indicies 0,1,2,4,5,6,8,9,10 hold important data
     $status = [0,0,0,"-",0,0,0,"-",0,0,0]
@@ -34,7 +41,8 @@ class Match
         puts "NEW GAME!"
         @p1 = Player.new
         @p2 = Player.new
-        @ongoing = true
+        @rounds = 0
+        @winner = "Time's Up. It's a tie."
         puts "#{p1.name} vs. #{p2.name}"
         puts "START!"
     end
@@ -106,6 +114,7 @@ class Match
     def check_winner(status)
         #win_conditions array represents sums of status array's sums in the 012, 345, 678, 036, 147, 258, 048, and 2,4,6 directions
         display_board()
+        $match.rounds += 1
 
         win_conditions = []
         win_conditions[0] = status[0] + status[1] + status[2]
@@ -121,18 +130,18 @@ class Match
 
         win_conditions.each do |x|
             if x.abs > 2 
-                @ongoing = false
-                x > 0 ? @winner = @p1.name : @winner = @p2.name
+                @rounds = 9
+                x > 0 ? @winner = "#{@p1.name} Wins!" : @winner = "#{@p2.name} Wins!"
             end
         end
     end
 end
 
 $match = Match.new
-while($match.ongoing) do
+while($match.rounds < 9) do
     $match.next_round()
 end
 10.times do 
-    puts "#{$match.winner} Wins!"
+    puts "#{$match.winner}"
 end
 
