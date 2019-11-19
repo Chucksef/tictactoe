@@ -22,7 +22,8 @@ class Player
 end
 
 class Match
-    attr_reader :p1, :p2, :ongoing, :status
+    attr_reader :p1, :p2, :status
+    attr_accessor :winner, :ongoing
 
     # array to hold values, only indicies 0,1,2,4,5,6,8,9,10 hold important data
     $status = [0,0,0,"-",0,0,0,"-",0,0,0]
@@ -47,7 +48,8 @@ class Match
             $status = take_turn(p1.name,-1,$status)
             p1.turn = true
         end
-        # check for victory
+        check_winner($status)
+
     end
     
     private
@@ -102,11 +104,35 @@ class Match
     end
 
     def check_winner(status)
+        #win_conditions array represents sums of status array's sums in the 012, 345, 678, 036, 147, 258, 048, and 2,4,6 directions
+        display_board()
+
+        win_conditions = []
+        win_conditions[0] = status[0] + status[1] + status[2]
+        win_conditions[1] = status[4] + status[5] + status[6]
+        win_conditions[2] = status[8] + status[9] + status[10]
+        
+        win_conditions[3] = status[0] + status[4] + status[8]
+        win_conditions[4] = status[1] + status[5] + status[9]
+        win_conditions[5] = status[2] + status[6] + status[10]
+        
+        win_conditions[6] = status[0] + status[5] + status[10]
+        win_conditions[7] = status[2] + status[5] + status[8]
+
+        win_conditions.each do |x|
+            if x.abs > 2 
+                @ongoing = false
+                x > 0 ? @winner = @p1.name : @winner = @p2.name
+            end
+        end
     end
 end
 
-match = Match.new
-while(match.ongoing) do
-    match.next_round()
+$match = Match.new
+while($match.ongoing) do
+    $match.next_round()
+end
+10.times do 
+    puts "#{$match.winner} Wins!"
 end
 
